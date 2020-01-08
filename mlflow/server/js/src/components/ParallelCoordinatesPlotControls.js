@@ -33,11 +33,19 @@ export class ParallelCoordinatesPlotControls extends React.Component {
           className='metrics-select'
           searchPlaceholder='Please select parameters'
           value={selectedParamKeys}
-          showCheckedStrategy={TreeSelect.SHOW_PARENT}
+          showCheckedStrategy={TreeSelect.SHOW_CHILD}
           treeCheckable
-          treeData={paramKeys.map((k) => ({ title: k, value: k, label: k}))}
+          treeData={[
+            {
+              title: 'All',
+              value: 'All',
+              key: 'All',
+              children: paramKeys.map((k) => ({ title: k, value: k, label: k}))
+            }
+          ]}
           onChange={handleParamsSelectChange}
           filterTreeNode={ParallelCoordinatesPlotControls.handleFilterChange}
+          treeDefaultExpandAll={true}
         />
         <div style={{ marginTop: 20 }}>Metrics:</div>
         <TreeSelect
@@ -46,9 +54,17 @@ export class ParallelCoordinatesPlotControls extends React.Component {
           value={selectedMetricKeys}
           showCheckedStrategy={TreeSelect.SHOW_PARENT}
           treeCheckable
-          treeData={metricKeys.map((k) => ({ title: k, value: k, label: k}))}
+          treeData={[
+            {
+              title: 'All',
+              value: 'All',
+              key: 'All',
+              children: metricKeys.map((k) => ({ title: k, value: k, label: k}))
+            }
+          ]}
           onChange={handleMetricsSelectChange}
           filterTreeNode={ParallelCoordinatesPlotControls.handleFilterChange}
+          treeDefaultExpandAll={true}
         />
       </div>
     );
