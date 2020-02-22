@@ -27,8 +27,6 @@ lightgbm==2.3.0
 # Install typing to fix torch on Python 2.7 (see https://github.com/pytorch/pytorch/issues/16775)
 typing==3.6.6
 pysftp==0.2.9
-# TODO (harupy): Remove enum once https://bitbucket.org/stoneleaf/enum34/issues/27/enum34-118-broken is fixed.
-enum==1.1.6; python_version < "3.0"
 keras==2.3.1
 attrdict==2.0.0
 azureml-sdk==1.0.17; python_version >= "3.0"
@@ -39,5 +37,7 @@ kubernetes==9.0.0
 pystan==2.17.1.0
 # TODO (harupy): Unpin fbprophet once https://github.com/facebook/prophet/issues/1339 is fixed.
 fbprophet==0.5
+# TODO (harupy): Remove enum once https://bitbucket.org/stoneleaf/enum34/issues/27/enum34-118-broken is fixed.
+enum==1.1.6; python_version < "3.0"
 # test plugin
 tests/resources/mlflow-test-plugin/
