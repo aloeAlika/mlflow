@@ -1,5 +1,6 @@
 .collapsible-section {
   margin-left: -16px;
+  background-color: #fff;
 }
 
 .collapsible-section.ant-collapse > .ant-collapse-item > .ant-collapse-header {
