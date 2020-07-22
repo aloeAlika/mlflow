@@ -132,15 +132,33 @@ export class ModelVersionView extends React.Component {
     return <IconButton icon={<Icon type='form' />} onClick={this.startEditingDescription} />;
   }
 
+  resolveRunLink() {
+    const { modelVersion, runInfo } = this.props;
+    if (modelVersion.runLink) {
+      return modelVersion.runLink;
+    } else if (runInfo) {
+      return Routers.getRunPageRoute(runInfo.getExperimentId(), runInfo.getRunUuid());
+    }
+    return null;
+  }
+
+  resolveRunName() {
+    const { modelVersion, runInfo, runDisplayName } = this.props;
+    if (modelVersion.runLink) {
+      // We use the first 37 chars to stay consistent with runDisplayName, which is typically:
+      // Run: [ID]
+      return modelVersion.runLink.substr(0, 37) + '...';
+    } else if (runInfo) {
+      return runDisplayName || runInfo.getRunUuid();
+    } else {
+      return null;
+    }
+  }
+
   render() {
-    const {
-      modelName,
-      modelVersion,
-      runInfo,
-      runDisplayName,
-      handleStageTransitionDropdownSelect,
-    } = this.props;
+    const { modelName, modelVersion, handleStageTransitionDropdownSelect } = this.props;
     const { status, description } = modelVersion;
+    const runLink = this.resolveRunLink();
     const { isDeleteModalVisible, isDeleteModalConfirmLoading, showDescriptionEditor } = this.state;
     const chevron = <i className='fas fa-chevron-right breadcrumb-chevron' />;
     const breadcrumbItemClass = 'truncate-text single-line breadcrumb-title';
@@ -181,11 +199,9 @@ export class ModelVersionView extends React.Component {
           <Descriptions.Item label='Last Modified'>
             {Utils.formatTimestamp(modelVersion.last_updated_timestamp)}
           </Descriptions.Item>
-          {runInfo ? (
-            <Descriptions.Item label='Source Run'>
-              <Link to={Routers.getRunPageRoute(runInfo.getExperimentId(), runInfo.getRunUuid())}>
-                {runDisplayName || runInfo.getRunUuid()}
-              </Link>
+          {runLink ? (
+            <Descriptions.Item label='Source Run' className='linked-run'>
+              <Link to={runLink}>{this.resolveRunName()}</Link>
             </Descriptions.Item>
           ) : null}
         </Descriptions>

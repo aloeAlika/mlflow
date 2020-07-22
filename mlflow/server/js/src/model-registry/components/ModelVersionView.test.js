@@ -6,6 +6,8 @@ import { Stages, ModelVersionStatus, ACTIVE_STAGES } from '../constants';
 import { Dropdown, Tooltip } from 'antd';
 import { BrowserRouter } from 'react-router-dom';
 import Utils from '../../common/utils/Utils';
+import { mockRunInfo } from '../../experiment-tracking/utils/test-utils/ReduxStoreFixtures';
+import Routers from '../../experiment-tracking/routes';
 
 describe('ModelVersionView', () => {
   let wrapper;
@@ -145,6 +147,57 @@ describe('ModelVersionView', () => {
       deleteMenuItem.simulate('click');
       expect(wrapper.find(ModelVersionView).instance().state.isDeleteModalVisible).toBe(true);
     }
+  });
+
+  test('run link renders if set', () => {
+    const modelVersion = mockModelVersionDetailed(
+      'Model A',
+      1,
+      Stages.NONE,
+      ModelVersionStatus.READY,
+      [],
+    );
+    const runLink =
+      'https://other.mlflow.hosted.instance.com/experiments/18722387/' +
+      'runs/d2c09dbd056c4d9c9289b854f491be10';
+    modelVersion['runLink'] = runLink;
+    const runId = 'somerunid';
+    const experimentId = 'experiment_id';
+    const runInfo = mockRunInfo(runId, experimentId);
+    const expectedRunDisplayName = Utils.getRunDisplayName({}, runId);
+    const props = {
+      ...minimalProps,
+      modelVersion: modelVersion,
+      runInfo: runInfo,
+      runDisplayName: expectedRunDisplayName,
+    };
+    wrapper = mount(
+      <BrowserRouter>
+        <ModelVersionView {...props} />
+      </BrowserRouter>,
+    );
+    expect(wrapper.find('.linked-run').html()).toContain(runLink);
+    expect(wrapper.find('.linked-run').html()).toContain(runLink.substr(0, 37) + '...');
+  });
+
+  test('run name and link render if runinfo provided', () => {
+    const runId = 'somerunid';
+    const experimentId = 'experiment_id';
+    const runInfo = mockRunInfo(runId, experimentId);
+    const expectedRunLink = Routers.getRunPageRoute(experimentId, runId);
+    const expectedRunDisplayName = Utils.getRunDisplayName({}, runId);
+    const props = {
+      ...minimalProps,
+      runInfo: runInfo,
+      runDisplayName: expectedRunDisplayName,
+    };
+    wrapper = mount(
+      <BrowserRouter>
+        <ModelVersionView {...props} />
+      </BrowserRouter>,
+    );
+    expect(wrapper.find('.linked-run').html()).toContain(expectedRunLink);
+    expect(wrapper.find('.linked-run').html()).toContain(expectedRunDisplayName);
   });
 
   test('Page title is set', () => {
