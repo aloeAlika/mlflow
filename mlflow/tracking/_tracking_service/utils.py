@@ -10,7 +10,6 @@ from mlflow.tracking._tracking_service.registry import TrackingStoreRegistry
 from mlflow.utils import env, rest_utils
 from mlflow.utils.file_utils import path_to_local_file_uri
 from mlflow.utils.databricks_utils import get_databricks_host_creds
-from mlflow.utils.uri import get_db_profile_from_uri
 
 _TRACKING_URI_ENV_VAR = "MLFLOW_TRACKING_URI"
 
@@ -58,6 +57,10 @@ def set_tracking_uri(uri):
     _tracking_uri = uri
 
 
+def _resolve_tracking_uri(tracking_uri=None):
+    return tracking_uri or get_tracking_uri()
+
+
 def get_tracking_uri():
     """
     Get the current tracking URI. This may not correspond to the tracking URI of
@@ -102,8 +105,7 @@ def _get_rest_store(store_uri, **_):
 
 
 def _get_databricks_rest_store(store_uri, **_):
-    profile = get_db_profile_from_uri(store_uri)
-    return DatabricksRestStore(lambda: get_databricks_host_creds(profile))
+    return DatabricksRestStore(lambda: get_databricks_host_creds(store_uri))
 
 
 _tracking_store_registry = TrackingStoreRegistry()

@@ -12,6 +12,7 @@ from mlflow.protos.databricks_pb2 import FEATURE_DISABLED
 from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
 from mlflow.store.model_registry import SEARCH_REGISTERED_MODEL_MAX_RESULTS_DEFAULT
 from mlflow.tracking._model_registry.client import ModelRegistryClient
+from mlflow.tracking._model_registry import utils as registry_utils
 from mlflow.tracking.registry import UnsupportedModelRegistryStoreURIException
 from mlflow.tracking._tracking_service import utils
 from mlflow.tracking._tracking_service.client import TrackingServiceClient
@@ -35,10 +36,11 @@ class MlflowClient(object):
                              `Where Runs Get Recorded <../tracking.html#where-runs-get-recorded>`_
                              for more info.
         :param registry_uri: Address of local or remote model registry server. If not provided,
-                             defaults to the service set by ``mlflow.tracking.set_tracking_uri``.
+                             defaults to the service set by ``mlflow.tracking.set_registry_uri``. If
+                             no such service was set, defaults to the tracking uri of the client.
         """
-        final_tracking_uri = tracking_uri or utils.get_tracking_uri()
-        self._registry_uri = registry_uri or final_tracking_uri
+        final_tracking_uri = utils._resolve_tracking_uri(tracking_uri)
+        self._registry_uri = registry_utils._resolve_registry_uri(registry_uri, tracking_uri)
         self._tracking_client = TrackingServiceClient(final_tracking_uri)
         # `MlflowClient` also references a `ModelRegistryClient` instance that is provided by the
         # `MlflowClient._get_registry_client()` method. This `ModelRegistryClient` is not explicitly
@@ -351,15 +353,17 @@ class MlflowClient(object):
     # Registered Model Methods
 
     @experimental
-    def create_registered_model(self, name):
+    def create_registered_model(self, name, tags=None):
         """
         Create a new registered model in backend store.
 
         :param name: Name of the new model. This is expected to be unique in the backend store.
+        :param tags: A dictionary of key-value pairs that are converted into
+                     :py:class:`mlflow.entities.model_registry.RegisteredModelTag` objects.
         :return: A single object of :py:class:`mlflow.entities.model_registry.RegisteredModel`
                  created by backend.
         """
-        return self._get_registry_client().create_registered_model(name)
+        return self._get_registry_client().create_registered_model(name, tags)
 
     @experimental
     def rename_registered_model(self, name, new_name):
@@ -458,20 +462,45 @@ class MlflowClient(object):
         """
         return self._get_registry_client().get_latest_versions(name, stages)
 
+    @experimental
+    def set_registered_model_tag(self, name, key, value):
+        """
+        Set a tag for the registered model.
+
+        :param name: Registered model name.
+        :param key: Tag key to log.
+        :param value: Tag value log.
+        :return: None
+        """
+        self._get_registry_client().set_registered_model_tag(name, key, value)
+
+    @experimental
+    def delete_registered_model_tag(self, name, key):
+        """
+        Delete a tag associated with the registered model.
+
+        :param name: Registered model name.
+        :param key: Registered model tag key.
+        :return: None
+        """
+        self._get_registry_client().delete_registered_model_tag(name, key)
+
     # Model Version Methods
 
     @experimental
-    def create_model_version(self, name, source, run_id):
+    def create_model_version(self, name, source, run_id, tags=None):
         """
         Create a new model version from given source or run ID.
 
         :param name: Name ID for containing registered model.
         :param source: Source path where the MLflow model is stored.
         :param run_id: Run ID from MLflow tracking server that generated the model
+        :param tags: A dictionary of key-value pairs that are converted into
+                     :py:class:`mlflow.entities.model_registry.ModelVersionTag` objects.
         :return: Single :py:class:`mlflow.entities.model_registry.ModelVersion` object created by
                  backend.
         """
-        return self._get_registry_client().create_model_version(name, source, run_id)
+        return self._get_registry_client().create_model_version(name, source, run_id, tags)
 
     @experimental
     def update_model_version(self, name, version, description=None):
@@ -491,17 +520,22 @@ class MlflowClient(object):
                                                                 description=description)
 
     @experimental
-    def transition_model_version_stage(self, name, version, stage):
+    def transition_model_version_stage(self, name, version, stage, archive_existing_versions=False):
         """
         Update model version stage.
 
         :param name: Registered model name.
         :param version: Registered model version.
         :param stage: New desired stage for this model version.
+        :param archive_existing_versions: If this flag is set to ``True``, all existing model
+            versions in the stage will be automically moved to the "archived" stage. Only valid
+            when ``stage`` is ``"staging"`` or ``"production"`` otherwise an error will be raised.
 
         :return: A single :py:class:`mlflow.entities.model_registry.ModelVersion` object.
         """
-        return self._get_registry_client().transition_model_version_stage(name, version, stage)
+        return self._get_registry_client().transition_model_version_stage(
+            name, version, stage, archive_existing_versions
+        )
 
     @experimental
     def delete_model_version(self, name, version):
@@ -551,3 +585,28 @@ class MlflowClient(object):
         :return: A list of valid stages.
         """
         return ALL_STAGES
+
+    @experimental
+    def set_model_version_tag(self, name, version, key, value):
+        """
+        Set a tag for the model version.
+
+        :param name: Registered model name.
+        :param version: Registered model version.
+        :param key: Tag key to log.
+        :param value: Tag value to log.
+        :return: None
+        """
+        self._get_registry_client().set_model_version_tag(name, version, key, value)
+
+    @experimental
+    def delete_model_version_tag(self, name, version, key):
+        """
+        Delete a tag associated with the model version.
+
+        :param name: Registered model name.
+        :param version: Registered model version.
+        :param key: Tag key.
+        :return: None
+        """
+        self._get_registry_client().delete_model_version_tag(name, version, key)

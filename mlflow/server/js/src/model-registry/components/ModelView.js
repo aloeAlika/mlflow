@@ -27,8 +27,8 @@ export class ModelView extends React.Component {
   static propTypes = {
     model: PropTypes.shape({
       name: PropTypes.string.isRequired,
-      creation_timestamp: PropTypes.number.isRequired,
-      last_updated_timestamp: PropTypes.number.isRequired,
+      creation_timestamp: PropTypes.string.isRequired,
+      last_updated_timestamp: PropTypes.string.isRequired,
     }),
     modelVersions: PropTypes.arrayOf(
       PropTypes.shape({
@@ -84,7 +84,10 @@ export class ModelView extends React.Component {
       <Menu>
         {this.getActiveVersionsCount() > 0 ? (
           <Menu.Item disabled className='delete'>
-            <Tooltip title={REGISTERED_MODEL_DELETE_MENU_ITEM_DISABLED_TOOLTIP_TEXT}>
+            <Tooltip
+              placement='right'
+              title={REGISTERED_MODEL_DELETE_MENU_ITEM_DISABLED_TOOLTIP_TEXT}
+            >
               Delete
             </Tooltip>
           </Menu.Item>
@@ -138,7 +141,7 @@ export class ModelView extends React.Component {
     selectedRows.forEach((row) => {
       newState.runsSelected = {
         ...newState.runsSelected,
-        [row.run_id]: row.version,
+        [row.version]: row.run_id,
       };
     });
     this.setState(newState);
