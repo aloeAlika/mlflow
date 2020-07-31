@@ -297,7 +297,7 @@ def save_model(pytorch_model, path, conda_env=None, mlflow_model=None, code_path
         f.write(pickle_module.__name__)
     # Save pytorch model
     model_path = os.path.join(model_data_path, _SERIALIZED_TORCH_MODEL_FILE_NAME)
-    torch.save(pytorch_model, model_path, pickle_module=pickle_module, **kwargs)
+    torch.save(pytorch_model, model_path, **kwargs)
 
     conda_env_subpath = "conda.yaml"
     if conda_env is None:
