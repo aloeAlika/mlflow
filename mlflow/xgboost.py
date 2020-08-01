@@ -241,6 +241,9 @@ def load_model(model_uri):
 class _XGBModelWrapper:
     def __init__(self, xgb_model):
         self.xgb_model = xgb_model
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info("_XGBModelWrapper")
 
     def predict(self, dataframe):
         import xgboost as xgb
